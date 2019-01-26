@@ -5,10 +5,30 @@ import java.util.*;
 
 public class EvilHangmanGame implements IEvilHangmanGame {
     private Set<String> words = new HashSet<>();
-    private Set<Character> lettersGuessed = new HashSet<>();
+    private Set<Character> lettersGuessed = new TreeSet<>();
     private String wordGroup;
     private int wordLength;
     private int guessesFound = 0;
+
+    public boolean playerHasWon() {
+        for (int i = 0; i < wordLength; i++) {
+            if (!Character.isAlphabetic(wordGroup.charAt(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public void printEndGameMessage() {
+        if (playerHasWon()) {
+            System.out.println("You Win!");
+            System.out.println("Correct word: " + wordGroup);
+        }
+        else {
+            System.out.println("You lose!");
+            System.out.println("The word was: " + words.toArray()[0]);
+        }
+    }
 
 
     public String lettersGuessedSoFar() {
@@ -69,6 +89,7 @@ public class EvilHangmanGame implements IEvilHangmanGame {
 
             if (wordGroups.size() > 1) {
                 if (wordGroups.containsKey(this.wordGroup)) {
+                    this.words = wordGroups.get(this.wordGroup);
                     return wordGroups.get(this.wordGroup);
                 }
                 else {
@@ -120,7 +141,7 @@ public class EvilHangmanGame implements IEvilHangmanGame {
         }
 
         // this loop removes groups that are less than the max size
-        for (String group : new ArrayList<String>(wordGroups.keySet())) {
+        for (String group : new ArrayList<>(wordGroups.keySet())) {
             if (wordGroups.get(group).size() < maxSize) {
                 wordGroups.remove(group);
             }
@@ -131,7 +152,7 @@ public class EvilHangmanGame implements IEvilHangmanGame {
 
     private Map<String, Set<String>> getFewestGuessedLettersGroups(Map<String, Set<String>> wordGroups) {
         int minNumLettersGuessed = this.wordLength;
-        int count = 0;
+        int count;
 
         for (String group : wordGroups.keySet()) {
             count = 0;
@@ -143,8 +164,14 @@ public class EvilHangmanGame implements IEvilHangmanGame {
             minNumLettersGuessed = (count < minNumLettersGuessed ? count : minNumLettersGuessed);
         }
 
-        for (String group : wordGroups.keySet()) {
-            if (wordGroups.get(group).size() < minNumLettersGuessed) {
+        for (String group : new ArrayList<>(wordGroups.keySet())) {
+            count = 0;
+            for (int i = 0; i < group.length(); i++) {
+                if (Character.isAlphabetic(group.charAt(i))) {
+                    count++;
+                }
+            }
+            if (count < minNumLettersGuessed) {
                 wordGroups.remove(group);
             }
         }
@@ -163,8 +190,9 @@ public class EvilHangmanGame implements IEvilHangmanGame {
                 }
             }
             if (tempMap.size() > 0) {
-                wordGroups = tempMap;
+                wordGroups = new HashMap<>(tempMap);
             }
+            tempMap.clear();
             rightMostIndex--;
         }
 
